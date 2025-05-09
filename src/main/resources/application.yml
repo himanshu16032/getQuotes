@@ -1,0 +1,7 @@
+java.net.preferIPv4Stack: true
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://user:user@cluster0.5yhmgyf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      database: saveLink
+      auto-index-creation: true
