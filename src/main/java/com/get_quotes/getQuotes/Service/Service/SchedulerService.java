@@ -50,7 +50,7 @@ public class SchedulerService {
         }
     }
 
-    @Scheduled(fixedRate =  20000) // every 15 min
+    //@Scheduled(fixedRate =  20000) // every 15 min
     public void processScheduledData() {
         System.out.println("Scheduler triggered!");
         List<SaveLinkDataMongo> saveLinkDataMongoList = getAllUsersData.action();

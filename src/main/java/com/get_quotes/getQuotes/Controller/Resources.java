@@ -3,6 +3,7 @@ package com.get_quotes.getQuotes.Controller;
 import com.get_quotes.getQuotes.Controller.Pojo.SaveLinkDataResponse;
 import com.get_quotes.getQuotes.Receiver.GetAllLinksByUserReceiver;
 import com.get_quotes.getQuotes.Service.Service.SaveDataService;
+import com.get_quotes.getQuotes.Service.Service.test;
 import com.get_quotes.getQuotes.Service.pojo.SaveData;
 import com.get_quotes.getQuotes.Utility.ThreadUtlity.ThreadLocalContext;
 import com.get_quotes.getQuotes.Utility.ThreadUtlity.ThreadLocalContextKeys;
@@ -24,6 +25,9 @@ public class Resources {
         @Autowired
         private GetAllLinksByUserReceiver getAllLinksByUserReceiver;
 
+        @Autowired
+        private test test;
+
 
 
      @PostMapping ("/save/link/{userId}")
@@ -34,4 +38,11 @@ public class Resources {
          return ResponseEntity.ok(saveLinkDataResponse);
 
      }
+
+    @PostMapping ("/test")
+    public ResponseEntity<String> getResource() {
+         test.action();
+        return ResponseEntity.ok("ok");
+
+    }
 }
