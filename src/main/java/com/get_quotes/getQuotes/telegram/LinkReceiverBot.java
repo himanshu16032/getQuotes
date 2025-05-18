@@ -4,6 +4,7 @@ import com.get_quotes.getQuotes.Service.Service.SaveDataService;
 import com.get_quotes.getQuotes.Service.Service.SaveUserService;
 import com.get_quotes.getQuotes.Service.pojo.SaveData;
 import com.get_quotes.getQuotes.Utility.ThreadUtlity.ThreadLocalContext;
+import com.get_quotes.getQuotes.Utility.ThreadUtlity.ThreadLocalContextKeys;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +70,7 @@ public class LinkReceiverBot extends TelegramLongPollingBot {
                 if (messageText.equalsIgnoreCase("/start")) {
                     sendText(chatId, "Thanks for subscribing! Send me a link to get started.");
                 } else if (messageText.startsWith("http")) {
-                    ThreadLocalContext.set(ThreadLocalContext.getUserId(), String.valueOf(chatId));
+                    ThreadLocalContext.set(ThreadLocalContextKeys.USER_ID, String.valueOf(chatId));
                     SaveData saveData = new SaveData();
                     saveData.setRequestLink(messageText);
                     saveDataService.action(saveData);

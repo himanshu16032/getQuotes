@@ -18,8 +18,8 @@ public class SaveUserService {
     Logger logger = LoggerFactory.getLogger(SaveUserService.class);
 
     public void action(String chatId ){
-        List<SaveLinkDataMongo> metaLinks = mongoDbDataLayerController.getLinkDataByUser(chatId);
-        if(metaLinks == null || metaLinks.isEmpty()){
+        SaveLinkDataMongo metaLinks = mongoDbDataLayerController.getLinkDataByUser(chatId);
+        if(metaLinks == null ){
             SaveLinkDataMongo saveLinkDataMongo = new SaveLinkDataMongo();
             saveLinkDataMongo.setUser(chatId);
             saveLinkDataMongo.setRequestLink(new ArrayList<>());

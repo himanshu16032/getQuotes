@@ -15,8 +15,8 @@ public class GetAllLinksByUserReceiver {
     private MongoDbDataLayerController mongoDbDataLayerController;
 
     public List<String> action(String user) {
-        List<SaveLinkDataMongo> metaLinks = mongoDbDataLayerController.getLinkDataByUser(user);
-        List<String> links = metaLinks.get(0).getRequestLink().stream().map(SaveLinkDataMongo.LinkData::getUrl).collect(Collectors.toList());
+        SaveLinkDataMongo metaLinks = mongoDbDataLayerController.getLinkDataByUser(user);
+        List<String> links = metaLinks.getRequestLink().stream().map(SaveLinkDataMongo.LinkData::getUrl).collect(Collectors.toList());
         if (links == null) {
             throw new RuntimeException("No links found for user: " + user);
         }

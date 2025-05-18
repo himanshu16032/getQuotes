@@ -1,11 +1,15 @@
 package com.get_quotes.getQuotes.Service.Service;
 
 
+import com.get_quotes.getQuotes.Datalayer.MongoDbDataLayerController;
 import com.get_quotes.getQuotes.Datalayer.Pojo.SaveLinkDataMongo;
 import com.get_quotes.getQuotes.Receiver.GetAllUsersData;
 import com.get_quotes.getQuotes.Service.pojo.GetLinkDataRequest;
 import com.get_quotes.getQuotes.Service.pojo.GetLinkDataResponse;
+import com.get_quotes.getQuotes.Service.pojo.MessageServiceRequest;
 import com.get_quotes.getQuotes.Utility.RestClient;
+import com.get_quotes.getQuotes.telegram.LinkReceiverBot;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,32 +30,61 @@ public class SchedulerService {
     private GetAllUsersData getAllUsersData;
 
     @Autowired
-    private RestClient restClient;
+    private ScrapperService scrapperService;
+    @Autowired
+    private LinkReceiverBot linkReceiverBot;
+
+    @Autowired
+    private MongoDbDataLayerController mongoDbDataLayerController;
+
+    @Autowired
+    private MessageServiceRequest messageServiceRequest;
 
     Logger logger = LoggerFactory.getLogger(SchedulerService.class);
 
 
-    private final String url = "http://172.16.138.46:8000/getLinkData";
+    private final String url = "http://ec2-54-210-117-245.compute-1.amazonaws.com/getLinkData";
 
     private  Queue<SaveLinkDataMongo> dataQueue = new ConcurrentLinkedQueue<>();
 
-    public void process() {
+    public void process() throws InterruptedException {
         while (!dataQueue.isEmpty()) {
             SaveLinkDataMongo saveLinkDataMongo = dataQueue.remove();
             logger.info("Processing data for user: " + saveLinkDataMongo.getUser());
+            boolean dbSave = false;
             for (SaveLinkDataMongo.LinkData link : saveLinkDataMongo.getRequestLink()) {
                 GetLinkDataRequest getLinkDataRequest = new GetLinkDataRequest();
                 getLinkDataRequest.setLink(link.getUrl());
-                HttpHeaders httpHeaders = new HttpHeaders();
-                httpHeaders.set("Content-Type", "application/json");
-                GetLinkDataResponse getLinkDataResponse = restClient.postWithHeaders(url, getLinkDataRequest, httpHeaders, GetLinkDataResponse.class);
+                GetLinkDataResponse getLinkDataResponse = scrapperService.action(getLinkDataRequest);
                 System.out.println(getLinkDataResponse.toString());
+                messageServiceRequest.action(saveLinkDataMongo.getUser(), link, getLinkDataResponse);
+                if(StringUtil.isEmpty(link.getDescription()) || link.getPrice() == null){
+                    if(StringUtil.isEmpty(link.getDescription())){
+                        link.setDescription(getLinkDataResponse.getDescription());
+                    }
+                    if(link.getPrice() == null){
+                        link.setPrice(getLinkDataResponse.getPrice());
+                    }
+                    dbSave = true;
+                }
+                System.out.println("sleeping for 5 seconds");
+                //Thread.sleep(5000);
             }
+            if(dbSave){
+                mongoDbDataLayerController.saveLinkData(saveLinkDataMongo);
+            }
+            if(saveLinkDataMongo.getUser().equalsIgnoreCase("1149912006")){
+                linkReceiverBot.sendText(Long.valueOf(saveLinkDataMongo.getUser()) , "Moti tera scan ho gaya hai 15 min baad fir se kru ga \n \uD83D\uDC27 \uD83D\uDC3C");
+            }
+            else{
+                linkReceiverBot.sendText(Long.valueOf(saveLinkDataMongo.getUser()) , "your scan is completed will scan again in 15 min");
+            }
+
         }
     }
 
-    //@Scheduled(fixedRate =  20000) // every 15 min
-    public void processScheduledData() {
+    @Scheduled(fixedRate = 900_000)// every 15 min
+    public void processScheduledData() throws InterruptedException {
         System.out.println("Scheduler triggered!");
         List<SaveLinkDataMongo> saveLinkDataMongoList = getAllUsersData.action();
         dataQueue = new ConcurrentLinkedQueue<>();

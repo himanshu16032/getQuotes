@@ -20,17 +20,20 @@ public class SaveLinkDataReceiver {
 
 
     public SaveLinkDataMongo action(SaveData saveData) {
-        SaveLinkDataMongo saveLinkDataMongo = new SaveLinkDataMongo();
-        saveLinkDataMongo.setUser(ThreadLocalContext.getUserId());
-        saveLinkDataMongo.setRequestLink(getAllUniqueLinks(saveData));
-        return saveLinkDataMongo;
+        SaveLinkDataMongo saveLinkDataResponseList = mongoDbDataLayerController.getLinkDataByUser(ThreadLocalContext.getUserId());
+        if(saveLinkDataResponseList == null){
+             saveLinkDataResponseList = new SaveLinkDataMongo();
+            saveLinkDataResponseList.setUser(ThreadLocalContext.getUserId());
+        }
+
+        saveLinkDataResponseList.setRequestLink(getAllUniqueLinks(saveData, saveLinkDataResponseList));
+        return saveLinkDataResponseList;
     }
 
-    public List<SaveLinkDataMongo.LinkData> getAllUniqueLinks(SaveData saveData){
+    public List<SaveLinkDataMongo.LinkData> getAllUniqueLinks(SaveData saveData, SaveLinkDataMongo saveLinkDataResponseList ){
         List<SaveLinkDataMongo.LinkData> links = null;
-        List<SaveLinkDataMongo> saveLinkDataResponseList = mongoDbDataLayerController.getLinkDataByUser(ThreadLocalContext.getUserId());
-        if(saveLinkDataResponseList != null && !saveLinkDataResponseList.isEmpty()){
-            links = saveLinkDataResponseList.get(0).getRequestLink();
+        if(saveLinkDataResponseList != null ){
+            links = saveLinkDataResponseList.getRequestLink();
         }
         if(links == null || links.isEmpty()){
             links = new ArrayList<>();

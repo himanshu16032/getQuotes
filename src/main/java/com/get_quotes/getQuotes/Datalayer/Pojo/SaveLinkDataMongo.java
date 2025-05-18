@@ -22,7 +22,7 @@ public class SaveLinkDataMongo {
     public static class LinkData {
         private String url;
         private String description;
-        private List<PriceData> price;
+        private Double price;
 
         @Override
         public String toString() {

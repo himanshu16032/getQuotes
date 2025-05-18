@@ -19,8 +19,8 @@ public class MongoDbDataLayerController {
         mongoSaveLinkDataService.save(saveLinkData);
     }
 
-    public List<SaveLinkDataMongo> getLinkDataByUser(String user) {
-        return mongoSaveLinkDataService.findAllById(Collections.singletonList(user));
+    public SaveLinkDataMongo getLinkDataByUser(String user) {
+        return mongoSaveLinkDataService.findAllById(Collections.singletonList(user)).stream().findFirst().orElse(null);
     }
 
 
