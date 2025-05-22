@@ -53,22 +53,28 @@ public class SchedulerService {
             logger.info("Processing data for user: " + saveLinkDataMongo.getUser());
             boolean dbSave = false;
             for (SaveLinkDataMongo.LinkData link : saveLinkDataMongo.getRequestLink()) {
-                GetLinkDataRequest getLinkDataRequest = new GetLinkDataRequest();
-                getLinkDataRequest.setLink(link.getUrl());
-                GetLinkDataResponse getLinkDataResponse = scrapperService.action(getLinkDataRequest);
-                System.out.println(getLinkDataResponse.toString());
-                messageServiceRequest.action(saveLinkDataMongo.getUser(), link, getLinkDataResponse);
-                if(StringUtil.isEmpty(link.getDescription()) || link.getPrice() == null){
-                    if(StringUtil.isEmpty(link.getDescription())){
-                        link.setDescription(getLinkDataResponse.getDescription());
+                try {
+                    GetLinkDataRequest getLinkDataRequest = new GetLinkDataRequest();
+                    getLinkDataRequest.setLink(link.getUrl());
+                    GetLinkDataResponse getLinkDataResponse = scrapperService.action(getLinkDataRequest);
+                    System.out.println(getLinkDataResponse.toString());
+                    messageServiceRequest.action(saveLinkDataMongo.getUser(), link, getLinkDataResponse);
+                    if (StringUtil.isEmpty(link.getDescription()) || link.getPrice() == null) {
+                        if (StringUtil.isEmpty(link.getDescription())) {
+                            link.setDescription(getLinkDataResponse.getDescription());
+                        }
+                        if (link.getPrice() == null) {
+                            link.setPrice(getLinkDataResponse.getPrice());
+                        }
+                        dbSave = true;
                     }
-                    if(link.getPrice() == null){
-                        link.setPrice(getLinkDataResponse.getPrice());
-                    }
-                    dbSave = true;
+                    System.out.println("sleeping for 5 seconds");
+                    Thread.sleep(5000);
                 }
-                System.out.println("sleeping for 5 seconds");
-                Thread.sleep(5000);
+                catch (Exception ex){
+                    logger.error("Error processing link: " + link.getUrl(), ex);
+                    linkReceiverBot.sendText(Long.valueOf("773940189") , "Error processing link: " + link.getUrl());
+                }
             }
             if(dbSave){
                 mongoDbDataLayerController.saveLinkData(saveLinkDataMongo);
