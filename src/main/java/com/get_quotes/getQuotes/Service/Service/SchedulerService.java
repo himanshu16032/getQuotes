@@ -68,22 +68,25 @@ public class SchedulerService {
                     dbSave = true;
                 }
                 System.out.println("sleeping for 5 seconds");
-                //Thread.sleep(5000);
+                Thread.sleep(5000);
             }
             if(dbSave){
                 mongoDbDataLayerController.saveLinkData(saveLinkDataMongo);
             }
             if(saveLinkDataMongo.getUser().equalsIgnoreCase("1149912006")){
-                linkReceiverBot.sendText(Long.valueOf(saveLinkDataMongo.getUser()) , "Moti tera scan ho gaya hai 15 min baad fir se kru ga \n \uD83D\uDC27 \uD83D\uDC3C");
+                //linkReceiverBot.sendText(Long.valueOf(saveLinkDataMongo.getUser()) , "Moti tera scan ho gaya hai 15 min baad fir se kru ga \n \uD83D\uDC27 \uD83D\uDC3C");
             }
-            else{
-                linkReceiverBot.sendText(Long.valueOf(saveLinkDataMongo.getUser()) , "your scan is completed will scan again in 15 min");
+            else if (saveLinkDataMongo.getUser().equalsIgnoreCase("773940189")){
+                //linkReceiverBot.sendText(Long.valueOf(saveLinkDataMongo.getUser()) , "all scans completed");
             }
 
         }
+        linkReceiverBot.sendText(Long.valueOf("773940189") , "all scans completed");
+
     }
 
-    @Scheduled(fixedRate = 900_000)// every 15 min
+    // every 1 hour
+    @Scheduled(fixedRate = 3_600_000)
     public void processScheduledData() throws InterruptedException {
         System.out.println("Scheduler triggered!");
         List<SaveLinkDataMongo> saveLinkDataMongoList = getAllUsersData.action();

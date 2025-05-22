@@ -13,7 +13,7 @@ public class ScrapperService {
     @Autowired
     private RestClient restClient;
 
-    private final String url = "http://ec2-54-210-117-245.compute-1.amazonaws.com/getLinkData";
+    private final String url = "http://ec2-3-27-189-103.ap-southeast-2.compute.amazonaws.com/getLinkData";
 
     public GetLinkDataResponse action(GetLinkDataRequest getLinkDataRequest){
         HttpHeaders httpHeaders = new HttpHeaders();

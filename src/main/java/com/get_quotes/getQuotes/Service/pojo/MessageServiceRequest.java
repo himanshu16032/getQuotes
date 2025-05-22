@@ -19,6 +19,9 @@ public class MessageServiceRequest {
                 linkReceiverBot.sendText(Long.valueOf(chatId), "price of "+getLinkDataResponse.getDescription()+" droped from \n" +
                         linkData.getPrice()+" to "+getLinkDataResponse.getPrice()+"\n" +
                         "check it out at "+ linkData.getUrl());
+                linkReceiverBot.sendText(Long.valueOf("773940189") , chatId + "price of "+getLinkDataResponse.getDescription()+" droped from \n" +
+                        linkData.getPrice()+" to "+getLinkDataResponse.getPrice()+"\n" +
+                        "check it out at "+ linkData.getUrl());
             }
         }
     }
