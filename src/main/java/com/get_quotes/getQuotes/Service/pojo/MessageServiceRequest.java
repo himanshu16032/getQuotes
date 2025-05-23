@@ -19,12 +19,12 @@ public class MessageServiceRequest {
                 linkReceiverBot.sendText(Long.valueOf(chatId), "price of "+getLinkDataResponse.getDescription()+" droped from \n" +
                         linkData.getPrice()+" to "+getLinkDataResponse.getPrice()+"\n" +
                         "check it out at "+ linkData.getUrl());
-                linkReceiverBot.sendText(Long.valueOf("773940189") , chatId + "price of "+getLinkDataResponse.getDescription()+" droped from \n" +
+                linkReceiverBot.sendText(Long.valueOf("773940189") , chatId + " price of "+getLinkDataResponse.getDescription()+" droped from \n" +
                         linkData.getPrice()+" to "+getLinkDataResponse.getPrice()+"\n" +
                         "check it out at "+ linkData.getUrl());
             } else if (getLinkDataResponse.getPrice() > linkData.getPrice() && Math.random() < 0.35) {
-                linkReceiverBot.sendText(Long.valueOf("773940189") , chatId + "price of "+getLinkDataResponse.getDescription()+" increased from \n" +
-                        linkData.getPrice() + " to " + "\n" +
+                linkReceiverBot.sendText(Long.valueOf("773940189") , chatId + " price of "+getLinkDataResponse.getDescription()+" increased from \n" +
+                        linkData.getPrice() + " to " + getLinkDataResponse.getPrice() +"\n" +
                         "check it out at "+ linkData.getUrl());
             }
         }
