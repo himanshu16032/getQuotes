@@ -9,10 +9,7 @@ import com.get_quotes.getQuotes.Utility.ThreadUtlity.ThreadLocalContext;
 import com.get_quotes.getQuotes.Utility.ThreadUtlity.ThreadLocalContextKeys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -39,10 +36,13 @@ public class Resources {
 
      }
 
-    @PostMapping ("/test")
-    public ResponseEntity<String> getResource() {
-         test.action();
-        return ResponseEntity.ok("ok");
+
+
+
+    @GetMapping("/healthcheck")
+    public ResponseEntity<Boolean> getResource() {
+        System.out.println("health check ok");
+        return ResponseEntity.ok(true);
 
     }
 }
