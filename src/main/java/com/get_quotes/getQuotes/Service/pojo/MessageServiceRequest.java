@@ -16,7 +16,7 @@ public class MessageServiceRequest {
 
     public void action(String chatId, SaveLinkDataMongo.LinkData linkData, GetLinkDataResponse getLinkDataResponse) {
         if(linkData.getPrice() != null){
-            if(getLinkDataResponse.getPrice() < linkData.getPrice() && Math.abs(getLinkDataResponse.getPrice() - linkData.getPrice()) > deltaThreshold)) {
+            if(getLinkDataResponse.getPrice() < linkData.getPrice() && Math.abs(getLinkDataResponse.getPrice() - linkData.getPrice()) > deltaThreshold) {
                 linkData.setPrice(getLinkDataResponse.getPrice());
                 linkReceiverBot.sendText(Long.valueOf(chatId), "price of "+getLinkDataResponse.getDescription()+" droped from \n" +
                         linkData.getPrice()+" to "+getLinkDataResponse.getPrice()+"\n" +
