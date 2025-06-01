@@ -11,10 +11,12 @@ public class MessageServiceRequest {
     @Autowired
     private LinkReceiverBot linkReceiverBot;
 
+    private static final double deltaThreshold = 1.5;
+
 
     public void action(String chatId, SaveLinkDataMongo.LinkData linkData, GetLinkDataResponse getLinkDataResponse) {
         if(linkData.getPrice() != null){
-            if(getLinkDataResponse.getPrice() < linkData.getPrice()){
+            if(getLinkDataResponse.getPrice() < linkData.getPrice() && Math.abs(getLinkDataResponse.getPrice() - linkData.getPrice()) > deltaThreshold)) {
                 linkData.setPrice(getLinkDataResponse.getPrice());
                 linkReceiverBot.sendText(Long.valueOf(chatId), "price of "+getLinkDataResponse.getDescription()+" droped from \n" +
                         linkData.getPrice()+" to "+getLinkDataResponse.getPrice()+"\n" +
@@ -22,7 +24,7 @@ public class MessageServiceRequest {
                 linkReceiverBot.sendText(Long.valueOf("773940189") , chatId + " price of "+getLinkDataResponse.getDescription()+" droped from \n" +
                         linkData.getPrice()+" to "+getLinkDataResponse.getPrice()+"\n" +
                         "check it out at "+ linkData.getUrl());
-            } else if (getLinkDataResponse.getPrice() > linkData.getPrice() && Math.random() < 0.35) {
+            } else if (getLinkDataResponse.getPrice() > linkData.getPrice() && Math.random() < 0.05) {
                 linkReceiverBot.sendText(Long.valueOf("773940189") , chatId + " price of "+getLinkDataResponse.getDescription()+" increased from \n" +
                         linkData.getPrice() + " to " + getLinkDataResponse.getPrice() +"\n" +
                         "check it out at "+ linkData.getUrl());
