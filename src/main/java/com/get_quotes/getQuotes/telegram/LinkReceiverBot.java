@@ -9,8 +9,13 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -31,17 +36,20 @@ public class LinkReceiverBot extends TelegramLongPollingBot {
     private SaveUserService saveUserService;
 
     @Autowired
-    private  SaveDataService saveDataService;
+    private SaveDataService saveDataService;
+
     private static final int MAX_RETRY_ATTEMPTS = 3;
     private static final int RETRY_DELAY_SECONDS = 5;
+    private static final String WEBHOOK_DELETE_URL = "https://api.telegram.org/bot8023873571:AAGdknd_uaDHzlMcvv9u1cdiWQ84ihsX9sg/deleteWebhook";
 
     Logger logger = LoggerFactory.getLogger(LinkReceiverBot.class);
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @PostConstruct
     public void init() {
         try {
-            // First, ensure any existing webhook is deleted
-            deleteWebhookWithRetry();
+            // First, ensure any existing webhook is deleted using direct API call
+            deleteWebhookWithCurl();
             
             // Add a small delay to ensure webhook deletion is processed
             Thread.sleep(2000);
@@ -64,25 +72,36 @@ public class LinkReceiverBot extends TelegramLongPollingBot {
     }
 
     /**
-     * Delete webhook with retry mechanism
+     * Delete webhook using direct API call (equivalent to your curl command)
      */
-    private void deleteWebhookWithRetry() {
+    private void deleteWebhookWithCurl() {
         for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
             try {
-                DeleteWebhook deleteWebhook = new DeleteWebhook();
-                deleteWebhook.setDropPendingUpdates(true); // Clear any pending updates
+                logger.info("Attempting to delete webhook using direct API call - Attempt {}", attempt);
                 
-                Boolean result = execute(deleteWebhook);
-                logger.info("Webhook deletion attempt {}: {}", attempt, result ? "Success" : "Failed");
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("Content-Type", "application/json");
                 
-                if (Boolean.TRUE.equals(result)) {
-                    logger.info("Successfully deleted webhook on attempt {}", attempt);
+                HttpEntity<String> entity = new HttpEntity<>(headers);
+                
+                ResponseEntity<String> response = restTemplate.exchange(
+                    WEBHOOK_DELETE_URL,
+                    HttpMethod.POST,
+                    entity,
+                    String.class
+                );
+                
+                logger.info("Webhook deletion attempt {}: Status = {}, Response = {}", 
+                           attempt, response.getStatusCode(), response.getBody());
+                
+                if (response.getStatusCode().is2xxSuccessful()) {
+                    logger.info("Successfully deleted webhook via API call on attempt {}", attempt);
                     return;
                 }
                 
-            } catch (TelegramApiException e) {
+            } catch (Exception e) {
+                logger.warn("Attempt {} to delete webhook via API call failed: {}", attempt, e.getMessage());
                 e.printStackTrace();
-                logger.info("Attempt {} to delete webhook failed: {}", attempt, e.getMessage());
                 
                 if (attempt < MAX_RETRY_ATTEMPTS) {
                     try {
@@ -96,7 +115,54 @@ public class LinkReceiverBot extends TelegramLongPollingBot {
             }
         }
         
-        logger.info("Failed to delete webhook after {} attempts, proceeding anyway", MAX_RETRY_ATTEMPTS);
+        logger.info("Failed to delete webhook via API call after {} attempts, trying fallback method", MAX_RETRY_ATTEMPTS);
+        deleteWebhookWithFallback();
+    }
+
+    /**
+     * Fallback webhook deletion using Telegram Bot API library
+     */
+    private void deleteWebhookWithFallback() {
+        try {
+            DeleteWebhook deleteWebhook = new DeleteWebhook();
+            deleteWebhook.setDropPendingUpdates(true);
+            Boolean result = execute(deleteWebhook);
+            logger.info("Fallback webhook deletion result: {}", result);
+        } catch (TelegramApiException e) {
+            logger.warn("Fallback webhook deletion also failed: {}", e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Manual webhook deletion method - can be called via REST endpoint if needed
+     */
+    public String manualDeleteWebhook() {
+        try {
+            logger.info("Manual webhook deletion requested");
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Content-Type", "application/json");
+            
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            
+            ResponseEntity<String> response = restTemplate.exchange(
+                WEBHOOK_DELETE_URL,
+                HttpMethod.POST,
+                entity,
+                String.class
+            );
+            
+            String result = "Manual webhook deletion: Status = " + response.getStatusCode() + 
+                           ", Response = " + response.getBody();
+            logger.info(result);
+            return result;
+            
+        } catch (Exception e) {
+            String error = "Manual webhook deletion failed: " + e.getMessage();
+            logger.error(error, e);
+            return error;
+        }
     }
 
     /**
@@ -105,18 +171,39 @@ public class LinkReceiverBot extends TelegramLongPollingBot {
     @Scheduled(fixedRate = 600000) // 10 minutes
     public void periodicDeleteWebhook() {
         try {
-            logger.debug("Running periodic webhook deletion check");
-            DeleteWebhook deleteWebhook = new DeleteWebhook();
-            deleteWebhook.setDropPendingUpdates(false); // Don't drop updates during periodic check
+            logger.debug("Running periodic webhook deletion check via API call");
             
-            Boolean result = execute(deleteWebhook);
-            if (Boolean.TRUE.equals(result)) {
-                logger.debug("Periodic webhook deletion successful");
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Content-Type", "application/json");
+            
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            
+            ResponseEntity<String> response = restTemplate.exchange(
+                WEBHOOK_DELETE_URL,
+                HttpMethod.POST,
+                entity,
+                String.class
+            );
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                logger.debug("Periodic webhook deletion successful via API call");
             }
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
+            
+        } catch (Exception e) {
             // This is expected if no webhook exists, so just debug log
-            logger.debug("Periodic webhook deletion: {}", e.getMessage());
+            logger.debug("Periodic webhook deletion via API call: {}", e.getMessage());
+            
+            // Try fallback method
+            try {
+                DeleteWebhook deleteWebhook = new DeleteWebhook();
+                deleteWebhook.setDropPendingUpdates(false);
+                Boolean result = execute(deleteWebhook);
+                if (Boolean.TRUE.equals(result)) {
+                    logger.debug("Periodic webhook deletion successful via fallback method");
+                }
+            } catch (TelegramApiException fallbackException) {
+                logger.debug("Periodic webhook deletion fallback: {}", fallbackException.getMessage());
+            }
         }
     }
 
